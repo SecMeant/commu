@@ -105,6 +105,8 @@ int main(int argc, char** argv)
     else
         cout << "Connected to the server" << endl;
 
+    while(true)
+        Sleep(1000);
 
 
     return 0;

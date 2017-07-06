@@ -13,10 +13,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
+#include "user.cc"
 
 #pragma comment(lib,"ws2_32.dll")
 
 #define DEFAULT_PORT "31337"
+
+unsigned int User::counter;
 
 using std::cout;
 using std::endl;
@@ -99,6 +102,7 @@ int main(void)
     cout << " OK - Socket listening." << endl;
 
     SOCKET ClientSocket;
+    SOCKET ClientSocket2;
     
     cout << "Accepting clinet's connection . . .";
     ClientSocket = accept(ListenSocket, NULL, NULL);
@@ -110,6 +114,39 @@ int main(void)
         return 1;
     }
     cout << " OK - Client accepted." << endl;
+
+    // SECOND LISTENING AND ACCEPTING
+    // TO BE DELETED
+    // JUST FOR TESTS
+    cout << "Preparing for listening . . .";
+    if( listen( ListenSocket, SOMAXCONN ) == SOCKET_ERROR )
+    {
+        cout << "Listen failed with error: " << WSAGetLastError() << endl;
+        closesocket(ListenSocket);
+        WSACleanup();
+        return 1;
+    }
+    cout << " OK - Socket listening." << endl;
+
+    cout << "Accepting clinet's connection . . .";
+    ClientSocket2 = accept(ListenSocket, NULL, NULL);
+    if(ClientSocket2 == INVALID_SOCKET)
+    {
+        cout << "Accept failed: " << WSAGetLastError() << endl;
+        closesocket(ListenSocket);
+        WSACleanup();
+        return 1;
+    }
+    cout << " OK - Client accepted." << endl;
+
+    User u1(ClientSocket, "Holz", 5);
+    User u2(ClientSocket2, "SecMeant", 9);
+
+    u1.ShowAll();
+    u2.ShowAll();
+
+    while(true)
+        Sleep(1000);
 
     return 0;
 }
