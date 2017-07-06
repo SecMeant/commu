@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-// ws2rcpip.h uses this constant to import
+// ws2tcpip.h uses this constant to import
 // structs: getaddrinfo and freeaddrinfo
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0502
@@ -14,7 +14,7 @@
 #include <ws2tcpip.h>
 #include <iostream>
 
-#pragma comment(lib,"Ws2_32.lib")
+#pragma comment(lib,"ws2_32.dll")
 
 #define DEFAULT_PORT "31337"
 
