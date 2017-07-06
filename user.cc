@@ -33,11 +33,11 @@ public:
         else
             strncpy(this->nick,n,nsize);
     }
-    // Spawnuje thread ktory odpala checkSendMsg()
+    // Spawns thread which runs checkSendMsg()
     bool initiate();
 
-    // Sprawdza czy user wyslal jakies dane
-    // Jezeli tak to rozsyla to do reszty
+    // Checks if user send any data
+    // If so send the data to others
     void checkSendMsg(SOCKET * users, uint usercount);
 
 }
