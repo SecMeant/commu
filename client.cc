@@ -13,22 +13,34 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
+#include <string>
+#include "mlp.cc"
 
 #pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_PORT "31337"
+#define DEFAULT_BUFLEN 1024
+
+typedef unsigned int uint;
 
 using std::cout;
 using std::endl;
 using std::cin;
+using std::string;
 
+
+
+// argv[1] = server ip address
+#define serverip argv[1]
+// argv[2] = clients nickname
+#define nick argv[2]
 int main(int argc, char** argv)
 {
-    if(argc != 2)
+    if(argc != 3)
     {
         cout << "Usage: " << endl;
-        cout << argv[0] << " <server's ipaddr>" << endl;
-        return(2);
+        cout << argv[0] << " <server's ipaddr> <nickname>" << endl;
+        return 2;
     }
 
     WSADATA wsaData;
@@ -104,9 +116,13 @@ int main(int argc, char** argv)
     }
     else
         cout << "Connected to the server" << endl;
+    
+    string sendbuff;
 
-    while(true)
-        Sleep(1000);
+    mlProto mlp;
+    mlp.fillFrame('0',"",argv[2]);
+    sendbuff = mlp.packFrame();
+    send(ConnectSocket, sendbuff.c_str(), sendbuff.size()+1 , 0);
 
 
     return 0;

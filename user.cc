@@ -1,55 +1,85 @@
 #include <cstring> // strncpy
 #include <winsock2.h>
 #include <iostream>
+#include <string>
 
 using std::cout;
 using std::endl;
+using std::string;
+
+typedef unsigned int uint;
 
 class User
 {
-#define uint unsigned int
 #define BUFFSIZE 512
 #define NICKSIZE 64
 private:
     static uint counter;
     uint id;
     SOCKET sock;
-    char buffer[BUFFSIZE];
-    char nick[NICKSIZE];
+    string recvbuffer;
+    string sendbuffer;
+    string nick;
 public:
-    User() : sock(INVALID_SOCKET)
+    User()
+    :id(this->counter++), sock(INVALID_SOCKET), recvbuffer(""), sendbuffer(""), nick("Noname"){}
+
+    User(const SOCKET &s, const string & n)
+    :id(this->counter++), sock(s), recvbuffer(""), sendbuffer(""), nick(n) {}
+
+    uint getUserId();
+    string getUserNickname();
+
+    void setSocket(const SOCKET &s);
+    void setNickname(const string &s);
+
+    // If socket == INVALID_SOCKET then this->sock wont change
+    // Same goes with nick if string is empty ^
+    void fillUserInfo(const SOCKET &s, const string &n);
+
+    void show()
     {
-        for(int i = 0; i < BUFFSIZE; i++)
-            this->buffer[i] = '\0';
-        
-        for(int i = 0; i < NICKSIZE; i++)
-            this->nick[i] = '\0';
-    }
-
-    User(SOCKET &s, const char * n, const uint nsize)
-    :id(this->counter++), sock(s)
-    {     
-        for(int i = 0; i < BUFFSIZE; i++)
-            this->buffer[i] = '\0';
-
-        if(nsize >= NICKSIZE)
-            for(int i = 0; i < NICKSIZE; i++)
-                this->nick[i] = '\0';
-        else
-            strncpy(this->nick,n,nsize);
-    }
-
-    void ShowAll()
-    {
-        
-        cout << "User: " << this->nick << endl;
+        cout << "counter: " << this->counter << endl;
         cout << "id: " << this->id << endl;
+        if(sock != INVALID_SOCKET)
+            cout << "sock: " << "ESTABLISHED" << endl;
+        else
+            cout << "sock: " << "INVALID" << endl;
+        cout << "nick: " << nick << endl;
     }
-    // Spawns thread which runs checkSendMsg()
-    //bool initiate();
 
-    // Checks if user send any data
-    // If so send the data to others
-    //void checkSendMsg(SOCKET * users, uint usercount);
-
+    //bool forkReceive();
 };
+
+uint User::getUserId()
+{
+    return this->id;
+}
+
+string User::getUserNickname()
+{
+    return this->nick;
+}
+
+void User::setSocket(const SOCKET &s)
+{
+    this->sock = s;
+    return;
+}
+
+void User::setNickname(const string &s)
+{
+    this->nick = s;
+    return;
+}
+
+void User::fillUserInfo(const SOCKET &s, const string &n)
+{
+    if(s != INVALID_SOCKET)
+        this->sock = s;
+    if(n != "")
+        this->nick = n;
+    return;
+}
+
+

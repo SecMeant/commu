@@ -13,17 +13,26 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
+#include <vector>
+#include <string>
 #include "user.cc"
+#include "mlp.cc"
 
 #pragma comment(lib,"ws2_32.dll")
 
 #define DEFAULT_PORT "31337"
+#define DEFAULT_BUFFLEN 1024
 
 unsigned int User::counter;
 
 using std::cout;
 using std::endl;
 using std::cin;
+using std::vector;
+using std::string;
+
+// global vector of users connected to the server
+vector<User> users;
 
 int main(void)
 {
@@ -91,62 +100,59 @@ int main(void)
 
     freeaddrinfo(result);
 
-    cout << "Preparing for listening . . .";
-    if( listen( ListenSocket, SOMAXCONN ) == SOCKET_ERROR )
-    {
-        cout << "Listen failed with error: " << WSAGetLastError() << endl;
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-    cout << " OK - Socket listening." << endl;
-
-    SOCKET ClientSocket;
-    SOCKET ClientSocket2;
-    
-    cout << "Accepting clinet's connection . . .";
-    ClientSocket = accept(ListenSocket, NULL, NULL);
-    if(ClientSocket == INVALID_SOCKET)
-    {
-        cout << "Accept failed: " << WSAGetLastError() << endl;
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-    cout << " OK - Client accepted." << endl;
-
-    // SECOND LISTENING AND ACCEPTING
-    // TO BE DELETED
-    // JUST FOR TESTS
-    cout << "Preparing for listening . . .";
-    if( listen( ListenSocket, SOMAXCONN ) == SOCKET_ERROR )
-    {
-        cout << "Listen failed with error: " << WSAGetLastError() << endl;
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-    cout << " OK - Socket listening." << endl;
-
-    cout << "Accepting clinet's connection . . .";
-    ClientSocket2 = accept(ListenSocket, NULL, NULL);
-    if(ClientSocket2 == INVALID_SOCKET)
-    {
-        cout << "Accept failed: " << WSAGetLastError() << endl;
-        closesocket(ListenSocket);
-        WSACleanup();
-        return 1;
-    }
-    cout << " OK - Client accepted." << endl;
-
-    User u1(ClientSocket, "Holz", 5);
-    User u2(ClientSocket2, "SecMeant", 9);
-
-    u1.ShowAll();
-    u2.ShowAll();
+    char signal;
+    string uid, data;
+    mlProto mlp;
 
     while(true)
-        Sleep(1000);
+    {
+        cout << "Preparing for listening . . .";
+        if( listen( ListenSocket, SOMAXCONN ) == SOCKET_ERROR )
+        {
+            cout << "Listen failed with error: " << WSAGetLastError() << endl;
+            closesocket(ListenSocket);
+            WSACleanup();
+            return 1;
+        }
+        cout << " OK - Socket listening." << endl;
+
+        SOCKET ClientSocket;
+        
+        cout << "Preparing to accept clinet's connection . . .";
+        ClientSocket = accept(ListenSocket, NULL, NULL);
+        if(ClientSocket == INVALID_SOCKET)
+        {
+            cout << "Accept failed: " << WSAGetLastError() << endl;
+            closesocket(ListenSocket);
+            WSACleanup();
+            return 1;
+        }
+        cout << " New user connected.";
+        char recvbuf[DEFAULT_BUFFLEN];
+
+        do
+        {
+            iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFFLEN, 0);
+        }while (iResult > 0);
+
+        mlp.unpackFrame(recvbuf);
+
+        mlp.getFrame(signal, uid, data);
+
+        cout << " Nickname: " << data << endl;
+
+        if(signal == '0')
+        {
+            User u1(ClientSocket, data);
+            users.push_back(u1);
+        }
+
+        /*
+        cout << "\n\n\nUSERS: " << endl;
+        for(int i=0; i < users.size(); i++)
+            users[i].show();
+        */
+    }
 
     return 0;
 }
