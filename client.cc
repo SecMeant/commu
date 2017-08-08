@@ -16,7 +16,7 @@
 #include <string>
 #include "mlp.cc"
 
-#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "ws2_32")
 
 #define DEFAULT_PORT "31337"
 #define DEFAULT_BUFLEN 1024

@@ -18,7 +18,7 @@
 #include "user.cc"
 #include "mlp.cc"
 
-#pragma comment(lib,"ws2_32.dll")
+#pragma comment(lib,"ws2_32")
 
 #define DEFAULT_PORT "31337"
 #define DEFAULT_BUFFLEN 1024
@@ -129,17 +129,19 @@ int main(void)
         }
         cout << " New user connected.";
         char recvbuf[DEFAULT_BUFFLEN];
+        
+        int clientS = (int)ClientSocket;
 
         do
         {
-            iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFFLEN, 0);
+            iResult = recv(clientS, recvbuf, DEFAULT_BUFFLEN, 0);
         }while (iResult > 0);
 
         mlp.unpackFrame(recvbuf);
 
         mlp.getFrame(signal, uid, data);
 
-        cout << " Nickname: " << data << endl;
+        cout << " Nickname: " << data << " SOCKET: " << ClientSocket <<endl;
 
         if(signal == '0')
         {
