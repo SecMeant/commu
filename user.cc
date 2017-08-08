@@ -3,9 +3,22 @@
 #include <iostream>
 #include <string>
 
+#ifndef _MLP_CC
+#define _MLP_CC
+#include "mlp.cc"
+#endif
+
 using std::cout;
 using std::endl;
 using std::string;
+
+#ifndef DEFAULT_PORT
+#define DEFAULT_PORT "31337"
+#endif
+
+#ifndef DEFAULT_BUFFLEN
+#define DEFAULT_BUFFLEN 1024
+#endif
 
 typedef unsigned int uint;
 
@@ -29,6 +42,7 @@ public:
 
     uint getUserId();
     string getUserNickname();
+	int getUserSock();
 
     void setSocket(const SOCKET &s);
     void setNickname(const string &s);
@@ -37,16 +51,7 @@ public:
     // Same goes with nick if string is empty ^
     void fillUserInfo(const SOCKET &s, const string &n);
 
-    void show()
-    {
-        cout << "counter: " << this->counter << endl;
-        cout << "id: " << this->id << endl;
-        if(sock != INVALID_SOCKET)
-            cout << "sock: " << "ESTABLISHED" << endl;
-        else
-            cout << "sock: " << "INVALID" << endl;
-        cout << "nick: " << nick << endl;
-    }
+    void show();
 
     //bool forkReceive();
 };
@@ -59,6 +64,11 @@ uint User::getUserId()
 string User::getUserNickname()
 {
     return this->nick;
+}
+
+int User::getUserSock()
+{
+	return this->sock;
 }
 
 void User::setSocket(const SOCKET &s)
@@ -82,4 +92,13 @@ void User::fillUserInfo(const SOCKET &s, const string &n)
     return;
 }
 
-
+void User::show()
+{
+	cout << "counter: " << this->counter << endl;
+	cout << "id: " << this->id << endl;
+	if(sock != INVALID_SOCKET)
+		cout << "sock: " << "ESTABLISHED" << endl;
+	else
+		cout << "sock: " << "INVALID" << endl;
+	cout << "nick: " << nick << endl;
+}

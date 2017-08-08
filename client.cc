@@ -14,7 +14,18 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include <string>
+
+#ifndef _MLP_CC
+#define _MLP_CC
 #include "mlp.cc"
+#endif
+
+// threadfunctions uses this define to import
+// extern global vars
+//#ifndef _MESWCS_
+//#define _MESWCS_
+//#include "threadfunctions.h"
+//#endif
 
 #pragma comment(lib, "ws2_32")
 
@@ -118,12 +129,54 @@ int main(int argc, char** argv)
         cout << "Connected to the server" << endl;
     
     string sendbuff;
+	char recvbuff[DEFAULT_BUFLEN];
 
+	char signal;
+    string uid, data;
     mlProto mlp;
     mlp.fillFrame('0',"",argv[2]);
     sendbuff = mlp.packFrame();
     send(ConnectSocket, sendbuff.c_str(), sendbuff.size()+1 , 0);
 
+	do
+	{
+		iResult = recv(ConnectSocket, recvbuff, DEFAULT_BUFLEN, 0);
+		
+		mlp.unpackFrame(recvbuff);
+
+		mlp.getFrame(signal, uid, data);
+		
+		switch(signal)
+		{
+			case '1':
+				cout << uid << ": " << data << endl;
+				break;
+			case '2':
+				cout << "***** " << uid << ": " << data  << " *****" << endl;
+				break;
+			case '3':
+				cout << "U have been kicked from server" << endl
+					 << "reason: " << data << endl;
+				shutdown(ConnectSocket, SD_BOTH);
+				break;
+			case '4':
+				cout << "U have been banned from server" << endl
+					 << "reason: " << data << endl;
+				shutdown(ConnectSocket, SD_BOTH);
+				break;
+			case '5':
+				cout << "Status: " << data << endl;
+				break;
+			case '6':
+				cout << "PRIVATE FROM " << uid << ": " << data << endl;
+				break;
+			default:
+				cout << "Unknown signal received" << endl;
+				break;
+		}
+	}while(iResult != SOCKET_ERROR);
+
+	cout << "Server closed connection, im out" << endl;
 
     return 0;
 }

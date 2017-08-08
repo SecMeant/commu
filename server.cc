@@ -16,12 +16,28 @@
 #include <vector>
 #include <string>
 #include "user.cc"
+
+// threadfunctions uses this define to import
+// extern global var
+#ifndef _MESWSS_
+#define _MESWSS_
+#include "threadfunctions.h"
+#endif
+
+#ifndef _MLP_CC
+#define _MLP_CC
 #include "mlp.cc"
+#endif
 
 #pragma comment(lib,"ws2_32")
 
+#ifndef DEFAULT_PORT
 #define DEFAULT_PORT "31337"
+#endif
+
+#ifndef DEFAULT_BUFFLEN
 #define DEFAULT_BUFFLEN 1024
+#endif
 
 unsigned int User::counter;
 
@@ -34,8 +50,11 @@ using std::string;
 // global vector of users connected to the server
 vector<User> users;
 
+long unsigned int recvOver(void * ud);
+	
 int main(void)
 {
+	users.reserve(300);
     WSADATA wsaData;
     int iResult;
 
@@ -127,33 +146,44 @@ int main(void)
             WSACleanup();
             return 1;
         }
-        cout << " New user connected.";
+        cout << "\nNew user connected.";
+
+		string sendbuff;
         char recvbuf[DEFAULT_BUFFLEN];
         
         int clientS = (int)ClientSocket;
 
-        do
-        {
-            iResult = recv(clientS, recvbuf, DEFAULT_BUFFLEN, 0);
-        }while (iResult > 0);
+		iResult = recv(clientS, recvbuf, DEFAULT_BUFFLEN, 0);
 
         mlp.unpackFrame(recvbuf);
 
         mlp.getFrame(signal, uid, data);
-
-        cout << " Nickname: " << data << " SOCKET: " << ClientSocket <<endl;
-
+		
+		// if new user connects
         if(signal == '0')
         {
             User u1(ClientSocket, data);
-            users.push_back(u1);
-        }
 
-        /*
-        cout << "\n\n\nUSERS: " << endl;
-        for(int i=0; i < users.size(); i++)
-            users[i].show();
-        */
+			// Adding new user to table of users
+			users.push_back(u1);
+
+			// Starts thread that handles incoming data on socket from this user
+			CreateThread(0,0,recvOverSS,(void *)(&users[users.size()-1]),0,0);
+            
+			// local message
+			cout << " Nickname: " << data << " SOCKET: " << ClientSocket
+				 << endl << endl;
+
+			// send info to others
+			string tmp = data + " connected to the server";
+			mlp.fillFrame('1',"Server",tmp.c_str());
+			sendbuff = mlp.packFrame();
+
+			for(int i=0; i < users.size(); i++)
+			{	
+				send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
+			}
+        }
     }
 
     return 0;

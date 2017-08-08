@@ -1,4 +1,4 @@
-// Messae Switcher Light Protocol
+// Message Switcher Light Protocol
 
 #include <string>
 #include <iostream>
