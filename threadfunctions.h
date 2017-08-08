@@ -7,14 +7,14 @@ using namespace std;
 
 #ifdef _MESWCS_
 
-long unsigned int recvOverCS(void * ud)
+long unsigned int recvOverCS(void * uSock)
 {
 	// Alocation of some basic vars
 	char signal;
     string uid, data;
     mlProto mlp;
 	int iResult;
-	SOCKET ConnectSocket = ((User *)ud)->getUserSock();	
+	SOCKET ConnectSocket = *((SOCKET *)uSock);	
 	char recvbuff[DEFAULT_BUFFLEN];
 
 	while(true)
@@ -90,12 +90,12 @@ long unsigned int recvOverSS(void * ud)
 		{
 			case '1':
 				// show localy
-				cout << uid << ": " << data << endl;
+				cout << ((User *)ud)->getUserNickname() << ": " << data << endl;
 				
 				// send to others
 				for(int i=0; i < users.size(); i++)
 				{	
-					mlp.fillFrame('1',uid,data);
+					mlp.fillFrame('1',((User *)ud)->getUserNickname(),data);
 					sendbuff = mlp.packFrame();
 					send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
 				}

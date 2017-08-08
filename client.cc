@@ -9,6 +9,9 @@
 #define _WIN32_WINNT 0x0502
 #endif
 
+#define DEFAULT_PORT "31337"
+#define DEFAULT_BUFFLEN 1024
+
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -22,15 +25,12 @@
 
 // threadfunctions uses this define to import
 // extern global vars
-//#ifndef _MESWCS_
-//#define _MESWCS_
-//#include "threadfunctions.h"
-//#endif
+#ifndef _MESWCS_
+#define _MESWCS_
+#include "threadfunctions.h"
+#endif
 
 #pragma comment(lib, "ws2_32")
-
-#define DEFAULT_PORT "31337"
-#define DEFAULT_BUFLEN 1024
 
 typedef unsigned int uint;
 
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
         cout << "Connected to the server" << endl;
     
     string sendbuff;
-	char recvbuff[DEFAULT_BUFLEN];
+	char recvbuff[DEFAULT_BUFFLEN];
 
 	char signal;
     string uid, data;
@@ -138,43 +138,19 @@ int main(int argc, char** argv)
     sendbuff = mlp.packFrame();
     send(ConnectSocket, sendbuff.c_str(), sendbuff.size()+1 , 0);
 
-	do
-	{
-		iResult = recv(ConnectSocket, recvbuff, DEFAULT_BUFLEN, 0);
-		
-		mlp.unpackFrame(recvbuff);
+	// forking recviving thread
+	// sending address of ConnectSocket is ok because
+	// only one connection is established on client side
+	CreateThread(0,0,recvOverCS,(void*)&ConnectSocket,0,0);
 
-		mlp.getFrame(signal, uid, data);
-		
-		switch(signal)
-		{
-			case '1':
-				cout << uid << ": " << data << endl;
-				break;
-			case '2':
-				cout << "***** " << uid << ": " << data  << " *****" << endl;
-				break;
-			case '3':
-				cout << "U have been kicked from server" << endl
-					 << "reason: " << data << endl;
-				shutdown(ConnectSocket, SD_BOTH);
-				break;
-			case '4':
-				cout << "U have been banned from server" << endl
-					 << "reason: " << data << endl;
-				shutdown(ConnectSocket, SD_BOTH);
-				break;
-			case '5':
-				cout << "Status: " << data << endl;
-				break;
-			case '6':
-				cout << "PRIVATE FROM " << uid << ": " << data << endl;
-				break;
-			default:
-				cout << "Unknown signal received" << endl;
-				break;
-		}
-	}while(iResult != SOCKET_ERROR);
+	while(true)
+	{
+		string msg;
+		cin >> msg;
+		mlp.fillFrame('1',"",msg.c_str());
+		sendbuff = mlp.packFrame();
+		send(ConnectSocket, sendbuff.c_str(), sendbuff.size()+1,0);
+	}
 
 	cout << "Server closed connection, im out" << endl;
 
