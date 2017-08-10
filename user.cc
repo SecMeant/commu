@@ -53,7 +53,6 @@ public:
 
     void show();
 
-    //bool forkReceive();
 };
 
 uint User::getUserId()
