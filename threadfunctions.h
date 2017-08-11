@@ -2,12 +2,13 @@
 #define _THREADFUNCTIONS_H
 #include <vector>
 #include <string>
+#include <windows.h>
 
 using namespace std;
 
 #ifdef _MESWCS_
 
-long unsigned int recvOverCS(void * uSock)
+DWORD WINAPI recvOverCS(void * uSock)
 {
 	// Alocation of some basic vars
 	char signal;
@@ -65,7 +66,7 @@ long unsigned int recvOverCS(void * uSock)
 #ifdef _MESWSS_
 extern std::vector<User> users;
 
-long unsigned int recvOverSS(void * ud)
+DWORD WINAPI recvOverSS(void * ud)
 {
 	// Alocation of some basic vars
 	char signal;

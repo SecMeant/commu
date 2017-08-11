@@ -18,7 +18,7 @@ class InitWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit InitWindow(string* nick, string* ip,QWidget *parent = 0);
+    explicit InitWindow(string* nick, string* ip,bool* retVal = 0,QWidget *parent = 0);
 
 private:
     QPushButton* m_button;
@@ -29,6 +29,10 @@ private:
 
     string* nickName;
     string* serverip;
+
+    // returns 1 when data had been successfuly catched
+    // and 0 otherwise
+    bool* retValue;
 
 signals:
 

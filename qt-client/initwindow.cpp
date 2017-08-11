@@ -2,7 +2,7 @@
 
 using std::string;
 
-InitWindow::InitWindow(string* nick, string* ip, QWidget *parent) :
+InitWindow::InitWindow(string* nick, string* ip,bool* retVal, QWidget *parent) :
     QWidget(parent),
     m_button(new QPushButton("",this)),
     nickName_label(new QLabel(this,0)),
@@ -10,7 +10,8 @@ InitWindow::InitWindow(string* nick, string* ip, QWidget *parent) :
     nickName_text(new QLineEdit("",this)),
     serverip_text(new QLineEdit("",this)),
     nickName(nick),
-    serverip(ip)
+    serverip(ip),
+    retValue(retVal)
 {
     // window settings
     this->QWidget::setFixedSize(300,80);
@@ -32,6 +33,9 @@ InitWindow::InitWindow(string* nick, string* ip, QWidget *parent) :
     // serverip text settings
     this->serverip_text->setGeometry(60,40,100,20);
 
+    // setting default return value
+    *(this->retValue) = 0;
+
     // Button settings
     this->m_button->setText("Connect");
     this->m_button->setGeometry(200,34,80,30);
@@ -42,7 +46,6 @@ InitWindow::InitWindow(string* nick, string* ip, QWidget *parent) :
 
 void InitWindow::sendButtonClicked(bool checked)
 {
-    qDebug() << checked << '\n';
     QString nn = this->nickName_text->text();
     QString sip = this->serverip_text->text();
 
@@ -50,6 +53,12 @@ void InitWindow::sendButtonClicked(bool checked)
     {
         this->nickName->operator=(nn.toLocal8Bit().constData());
         this->serverip->operator=(sip.toLocal8Bit().constData());
+
+        // if retValue contains address
+        if(this->retValue)
+            // assign return value
+            // wont happen when
+            *(this->retValue)=1;
         this->close();
     }
 }
