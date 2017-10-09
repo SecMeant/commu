@@ -1,0 +1,13 @@
+CC=g++
+CFLAGS=-std=c++11
+DEPS=threadfunctions.h
+LIBS=-lws2_32
+
+server: server.o mlp.o
+	$(CC) -o server server.o $(CFLAGS) $(DEPS) $(LIBS)
+
+server.o: server.cc mlp.cc
+	$(CC) -c server.cc $(CFLAGS) $(DEPS) $(LIBS)
+
+clean:
+	rm *.o server

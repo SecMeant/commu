@@ -61,12 +61,12 @@ DWORD WINAPI recvOverCS(void * uSock)
 	return 0;
 }
 
-#endif
+#endif // _MESWCS_
 
 #ifdef _MESWSS_
 extern std::vector<User> users;
 
-DWORD WINAPI recvOverSS(void * ud)
+DWORD WINAPI handleMessages(void * ud)
 {
 	// Alocation of some basic vars
 	char signal;
@@ -143,7 +143,7 @@ DWORD WINAPI recvOverSS(void * ud)
 	return 0;
 }
 
-#endif
+#endif // _MESWSS_
 
 
-#endif
+#endif // _THREADFUNCTIONS_H
