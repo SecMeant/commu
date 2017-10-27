@@ -59,12 +59,12 @@ void InitWindow::sendButtonClicked(bool)
             // assign return value
             // wont happen when
             *(this->retValue)=1;
-				// Has the same result as this->close()
-				// But had to call this different method
-				// to determine from where the call came from
-				// I MIGHT BE DOING SOMETHING REALLY STUPID HERE
-				this->hide();
-				QCoreApplication::quit();
+	// Has the same result as this->close()
+	// But had to call this different method
+	// to determine from where the call came from
+	// I MIGHT BE DOING SOMETHING REALLY STUPID HERE
+	this->hide();
+	QCoreApplication::quit();
     }
 }
 
