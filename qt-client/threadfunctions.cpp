@@ -9,7 +9,7 @@ DWORD WINAPI recvOverCS(void * w)
     mlProto mlp;
     int iResult;
 
-    ChatWindow* wnd = (ChatWindow*)w;
+    ChatWindow* wnd = reinterpret_cast<ChatWindow*>(w);
     SOCKET ConnectSocket = wnd->getSock();
     char recvbuff[DEFAULT_BUFFLEN];
 
@@ -17,8 +17,10 @@ DWORD WINAPI recvOverCS(void * w)
     {
         iResult = recv(ConnectSocket, recvbuff, DEFAULT_BUFFLEN, 0);
         if(iResult == SOCKET_ERROR)
-            break;
-        //wnd->chat_label->setText("asdf");
+        {
+					wnd->close();
+					return 1;
+				}
 
         mlp.unpackFrame(recvbuff);
 

@@ -108,7 +108,7 @@ void ChatWindow::sendButtonClicked()
 
     mlp.fillFrame('1',"",msg.toLocal8Bit().constData());
     string sendbuff = mlp.packFrame();
-    send(this->getSock(), sendbuff.c_str(), sendbuff.size()+1,0);
+    send(this->getSock(), sendbuff.c_str(), static_cast<int>(sendbuff.size()+1),0);
 }
 
 void ChatWindow::adjustLabelSlot()
@@ -126,5 +126,5 @@ void ChatWindow::sendMSG()
 
     mlp.fillFrame('1',"",msg.toLocal8Bit().constData());
     string sendbuff = mlp.packFrame();
-    send(this->getSock(), sendbuff.c_str(), sendbuff.size()+1,0);
+    send(this->getSock(), sendbuff.c_str(), static_cast<int>(sendbuff.size()+1),0);
 }

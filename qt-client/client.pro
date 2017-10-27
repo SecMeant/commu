@@ -18,4 +18,5 @@ HEADERS += \
     chatwindow.h \
     mlp.h
 
-LIBS += -lws2_32
+LIBS += -lws2_32 -luser32
+CONFIG += console

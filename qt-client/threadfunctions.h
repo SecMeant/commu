@@ -9,6 +9,9 @@
 #include <vector>
 #include <string>
 
+#include <QMessageBox>
+#include <QThread>
+
 #include "mlp.h"
 
 #define DEFAULT_BUFFLEN 1024
@@ -22,3 +25,4 @@ DWORD WINAPI recvOverCS(void * uSock);
 #endif // MESWCS
 
 #endif // THREADFUNCTIONS_H
+
