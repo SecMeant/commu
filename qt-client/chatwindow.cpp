@@ -1,5 +1,4 @@
 #include "chatwindow.h"
-#include <QDebug>
 
 using namespace std;
 
@@ -12,13 +11,13 @@ ChatWindow::ChatWindow(SOCKET &cs,QWidget *parent)
       connectSocket(cs)
 {
     // window settings
-    this->QWidget::setFixedSize(800,800);
+    this->QWidget::setFixedSize(800,600);
     this->setStyleSheet("QLabel { background-color: #383838; color:#ffa500; }");
 
     // chat scroll area settings
     this->chat_main->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOn );
-    this->chat_main->setWidgetResizable( true );
-    this->chat_main->setGeometry( 10, 10, 770, 740 );
+		this->chat_main->setWidgetResizable( true );
+    this->chat_main->setGeometry( 10, 10, 770, 540);
     this->chat_main->setWidget(chat_label);
 
     // chat label settings
@@ -28,11 +27,11 @@ ChatWindow::ChatWindow(SOCKET &cs,QWidget *parent)
     this->chat_label->setAlignment(Qt::AlignLeft);
 
     // msg text settings
-    this->msg_text->setGeometry(10,760,700,30);
+    this->msg_text->setGeometry(10,560,700,30);
 
     // Button settings
     this->send_button->setText("Send");
-    this->send_button->setGeometry(710,760,80,30);
+    this->send_button->setGeometry(710,560,80,30);
 
     connect(send_button, SIGNAL(released()),this,SLOT(sendButtonClicked()));
     connect(this, SIGNAL(adjustLabelSignal()),this,SLOT(adjustLabelSlot()));

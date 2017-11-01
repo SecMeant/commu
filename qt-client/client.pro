@@ -1,5 +1,6 @@
 TEMPLATE = app
 TARGET = client
+CONFIG += static
 
 QT = core gui
 
@@ -19,4 +20,3 @@ HEADERS += \
     mlp.h
 
 LIBS += -lws2_32 -luser32
-CONFIG += console

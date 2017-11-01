@@ -10,4 +10,4 @@ server.o: server.cc mlp.cc
 	$(CC) -c server.cc $(CFLAGS) $(DEPS) $(LIBS)
 
 clean:
-	rm *.o server
+	del *.o
