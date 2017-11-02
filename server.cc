@@ -13,7 +13,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
-#include <vector>
+#include <list>
 #include <string>
 #include "user.cc"
 
@@ -44,17 +44,16 @@ unsigned int User::counter;
 using std::cout;
 using std::endl;
 using std::cin;
-using std::vector;
+using std::list;
 using std::string;
 
 // global vector of users connected to the server
-vector<User> users;
+list<User> users;
 
 long unsigned int recvOver(void * ud);
 	
 int main(void)
 {
-	users.reserve(300);
 	WSADATA wsaData;
 	int iResult;
 
@@ -122,16 +121,15 @@ int main(void)
 	char signal;
 	string uid, data;
 	mlProto mlp;
-
+	
+mainLoop:
 	while(true)
 	{
 			cout << "Preparing for listening . . .";
 			if( listen( ListenSocket, SOMAXCONN ) == SOCKET_ERROR )
 			{
 				cout << "Listen failed with error: " << WSAGetLastError() << endl;
-				closesocket(ListenSocket);
-				WSACleanup();
-				return 1;
+				goto mainLoop;
 			}
 			cout << " OK - Socket listening." << endl;
 
@@ -142,46 +140,62 @@ int main(void)
 			if(ClientSocket == INVALID_SOCKET)
 			{
 				cout << "Accept failed: " << WSAGetLastError() << endl;
-				closesocket(ListenSocket);
-				WSACleanup();
-				return 1;
+				goto mainLoop;
 			}
 			cout << "\nNew user connected.";
 
 			string sendbuff;
-			char recvbuf[DEFAULT_BUFFLEN];
-			
-			int clientS = (int)ClientSocket;
+			char recvbuf[DEFAULT_BUFFLEN];	
 
-			iResult = recv(clientS, recvbuf, DEFAULT_BUFFLEN, 0);
+			iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFFLEN, 0);
 
-			mlp.unpackFrame(recvbuf);
+			mlp.unpackFrame(recvbuf,DEFAULT_BUFFLEN);
 
 			mlp.getFrame(signal, uid, data);
+
 	
 		// if new user connects
-	if(signal == '0')
+		if(signal == '0')
 		{
 			User u1(ClientSocket, data);
+			string tmp;
+
+			for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
+			{
+				if(data == (*it).getUserNickname())
+				{
+					tmp = "Someone else is using this nickname";
+					mlp.fillFrame('3',"Server",tmp.c_str());
+					sendbuff = mlp.packFrame();
+
+					send(ClientSocket,sendbuff.c_str(),sendbuff.size()+1,0);
+					// Close socket for both, sending and receiving
+					shutdown(ClientSocket, SD_BOTH);
+					cout << "User tried to connect, but someone else already had the same nickname." << endl;
+					goto mainLoop;
+				}
+			}
 
 			// Adding new user to table of users
 			users.push_back(u1);
 
 			// Starts thread that handles incoming data on socket from this user
-			CreateThread(0,0,handleMessages,(void *)(&users[users.size()-1]),0,0);
+			cout << "And hes name is: " << (*(--users.end())).getUserNickname().c_str() << endl;
+			CreateThread(0,0,handleMessages,const_cast<char *>((*(--users.end())).getUserNickname().c_str()),0,0);
 						
 			// local message
 			cout << " Nickname: " << data << " SOCKET: " << ClientSocket
 				 << endl << endl;
 
 			// send info to others
-			string tmp = data + " connected to the server";
+			tmp = data + " connected to the server";
 			mlp.fillFrame('1',"Server",tmp.c_str());
 			sendbuff = mlp.packFrame();
+			
 
-			for(int i=0; i < users.size(); i++)
+			for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 			{	
-				send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
+				send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
 			}
 		}
 	}

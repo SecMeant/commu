@@ -127,3 +127,9 @@ void ChatWindow::sendMSG()
     string sendbuff = mlp.packFrame();
     send(this->getSock(), sendbuff.c_str(), static_cast<int>(sendbuff.size()+1),0);
 }
+
+void ChatWindow::closeEvent(QCloseEvent * event)
+{
+	shutdown(this->connectSocket, SD_BOTH);
+	event->accept();
+}

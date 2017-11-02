@@ -1,6 +1,6 @@
 #ifndef _THREADFUNCTIONS_H
 #define _THREADFUNCTIONS_H
-#include <vector>
+#include <list>
 #include <string>
 #include <windows.h>
 
@@ -24,7 +24,7 @@ DWORD WINAPI recvOverCS(void * uSock)
 		if(iResult == SOCKET_ERROR)
 			break;
 		
-		mlp.unpackFrame(recvbuff);
+		mlp.unpackFrame(recvbuff,DEFAULT_BUFFLEN);
 
 		mlp.getFrame(signal, uid, data);
 		
@@ -64,82 +64,103 @@ DWORD WINAPI recvOverCS(void * uSock)
 #endif // _MESWCS_
 
 #ifdef _MESWSS_
-extern std::vector<User> users;
+extern std::list<User> users;
 
 DWORD WINAPI handleMessages(void * ud)
 {
 	// Alocation of some basic vars
 	char signal;
-    string uid, data;
-    mlProto mlp;
+	string uid, data;
+	mlProto mlp;
+	list<User>::iterator handledUser = users.begin();
 	int iResult;
-	SOCKET ConnectSocket = ((User *)ud)->getUserSock();	
-	char recvbuff[DEFAULT_BUFFLEN];
+
+	while((*handledUser).getUserNickname() != reinterpret_cast<char *>(ud))
+		handledUser++;
+
+	SOCKET ConnectSocket = (*(handledUser)).getUserSock();	
+	cout << "Connect Socket inner: " << ConnectSocket << endl;
+	char recvbuff[DEFAULT_BUFFLEN]={};
 	string sendbuff;
 
 	while(true)
 	{
-		iResult = recv(ConnectSocket, recvbuff, DEFAULT_BUFFLEN, 0);
-		if(iResult == SOCKET_ERROR)
+		iResult = recv(ConnectSocket, recvbuff, DEFAULT_BUFFLEN-1, 0);
+		if(iResult == SOCKET_ERROR || iResult <= 0)
+		{
+			cout << "SOCKET ERROR" << endl;
 			break;
+		}
 		
-		mlp.unpackFrame(recvbuff);
+		mlp.unpackFrame(recvbuff,DEFAULT_BUFFLEN);
 
 		mlp.getFrame(signal, uid, data);
 		
 		switch(signal)
 		{
+			// Normal message to everyone
 			case '1':
 				// show localy
-				cout << ((User *)ud)->getUserNickname() << ": " << data << endl;
+				cout << (*handledUser).getUserNickname() << ": " << data << endl;
 				
 				// send to others
-				for(int i=0; i < users.size(); i++)
+				for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 				{	
-					mlp.fillFrame('1',((User *)ud)->getUserNickname(),data);
+					mlp.fillFrame('1',(*(handledUser)).getUserNickname(),data);
 					sendbuff = mlp.packFrame();
-					send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
+					send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
 				}
 				break;
+			// Important message to everyone
 			case '2':
 				// show localy
-				cout << "***** " << uid << ": " << data  << " *****" << endl;
+				out << "***** " << uid << ": " << data  << " *****" << endl;
 
 				// send to others
-				for(int i=0; i < users.size(); i++)
+				for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 				{	
 					mlp.fillFrame('2',uid,data);
 					sendbuff = mlp.packFrame();
-					send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
+					send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
 				}
 				break;
+			
 			case '6':
-				for(int i=0; i < users.size(); i++)
+				// Private message
+				// show localy
+				cout  << "PW From: " << (*(handledUser)).getUserNickname()
+							<< " To: " << uid << "Message: " << data << endl;
+				for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 				{
-					if(users[i].getUserNickname() == uid)
+					if((*it).getUserNickname() == uid)
 					{
-						mlp.fillFrame('6',((User *)ud)->getUserNickname(),data);
+						mlp.fillFrame('6',(*(handledUser)).getUserNickname(),data);
 						sendbuff = mlp.packFrame();
-						send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
+						send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
 					}
 				}
 				break;
 			default:
-				cout << "Unknown signal received" << endl;
+				cout << "Unknown or illegal signal received" << endl;
 				break;
 		}
 	}
 
 	// send info to others that user closed connection
-	string tmp = ((User *)ud)->getUserNickname() + " disconnected";
+	string tmp = (*(handledUser)).getUserNickname() + " disconnected";
 	mlp.fillFrame('5',"Server",tmp.c_str());
 	sendbuff = mlp.packFrame();
 
-	for(int i=0; i < users.size(); i++)
+	cout << "closing " << (*(handledUser)).getUserNickname() << " socket" << endl;
+	
+	users.erase(handledUser);
+
+	for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 	{	
-		send(users[i].getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
+		send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1, 0);
 	}
-	cout << "closing " << ((User *)ud)->getUserNickname() << " socket" << endl;
+	
+
 	return 0;
 }
 

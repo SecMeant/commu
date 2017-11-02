@@ -161,6 +161,7 @@ getParams:
 					"Connection lost ;/",
 					"Oops !",
 					MB_OK);
+					shutdown(ConnectSocket,SD_BOTH);
 
 			goto getParams;
 		}

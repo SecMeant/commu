@@ -1,3 +1,4 @@
+// MESW CLIENT VERSION: 0.1 ( ONLY CONSOLE MODE )
 // This macro prevents windows.h from including winsock 1.1
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -129,9 +130,9 @@ int main(int argc, char** argv)
         cout << "Connected to the server" << endl;
     
     string sendbuff;
-	char recvbuff[DEFAULT_BUFFLEN];
+		char recvbuff[DEFAULT_BUFFLEN];
 
-	char signal;
+		char signal;
     string uid, data;
     mlProto mlp;
     mlp.fillFrame('0',"",argv[2]);

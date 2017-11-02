@@ -53,6 +53,7 @@ public:
     explicit ChatWindow(SOCKET &cs,QWidget* parent = 0);
     ChatWindow& operator<<(const string msg);
     ChatWindow& operator<<(const char* msg);
+		void closeEvent(QCloseEvent * event);
     SOCKET getSock();
 
 private:
