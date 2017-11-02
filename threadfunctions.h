@@ -114,7 +114,7 @@ DWORD WINAPI handleMessages(void * ud)
 			// Important message to everyone
 			case '2':
 				// show localy
-				out << "***** " << uid << ": " << data  << " *****" << endl;
+				cout << "***** " << uid << ": " << data  << " *****" << endl;
 
 				// send to others
 				for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
@@ -126,20 +126,43 @@ DWORD WINAPI handleMessages(void * ud)
 				break;
 			
 			case '6':
-				// Private message
-				// show localy
-				cout  << "PW From: " << (*(handledUser)).getUserNickname()
-							<< " To: " << uid << "Message: " << data << endl;
-				for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
-				{
-					if((*it).getUserNickname() == uid)
+				{ // This braces will make found and msgTo variables free after this case
+					// Private message
+					// show localy
+					cout  << "PW From: " << (*(handledUser)).getUserNickname()
+								<< " To: " << uid << "Message: " << data << endl;
+					bool found = 0;
+					string msgTo = "PRIVATE TO ";
+					for(list<User>::iterator it = users.begin(); it != users.end(); ++it)
 					{
-						mlp.fillFrame('6',(*(handledUser)).getUserNickname(),data);
-						sendbuff = mlp.packFrame();
-						send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
+						if((*it).getUserNickname() == uid)
+						{
+							// Control flag
+							found = 1;
+
+							// Sending pw to requested user
+							mlp.fillFrame('6',(*(handledUser)).getUserNickname(),data);
+							sendbuff = mlp.packFrame();
+							send((*it).getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
+
+							// Sending confirmation to source user
+							msgTo += uid;
+							mlp.fillFrame('1',msgTo,data);
+							sendbuff = mlp.packFrame();
+							send((*handledUser).getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
+
+						}
 					}
+					if(found == 0)
+					{
+						cout << "There is no user with that username" << endl;
+						mlp.fillFrame('1',"Server","There is no user with that username");
+						sendbuff = mlp.packFrame();
+						send((*handledUser).getUserSock(),sendbuff.c_str(),sendbuff.size()+1,0);
+					}
+					break;
 				}
-				break;
+
 			default:
 				cout << "Unknown or illegal signal received" << endl;
 				break;
